@@ -34,23 +34,27 @@ app.post('/register', async (req, res) => {
 });
 
 app.post('/login', (req, res) => {
-  const sql = 'SELECT * FROM users where email = ?';
+  const sql = 'SELECT password FROM users WHERE email = ? LIMIT 1';
   db.query(sql, [req.body.email], (err, data) => {
-    if(err) return res.json({Error: "Login error in server"});
-    if(data.length > 0){
-      bcrypt.compare(req.body.password.toString(), data[0].password, (err, response) => {
-        if(err) return res.json({Error: "Password compare error"});
-        if(response){
-          res.json({ status: 'Sucesso' });
-        }else{
-          res.json({ Error: 'Password not matched' });
-        }
-      });
-    }else{
-      return res.json({Error: "No email existed "});
+    if (err) {
+      return res.json({ Error: "Erro ao fazer login no servidor." });
     }
-  })
-})
+    if (data.length === 0) {
+      return res.json({ Error: "E-mail não encontrado." });
+    }
+    bcrypt.compare(req.body.password, data[0].password, (err, response) => {
+      if (err) {
+        return res.json({ Error: "Erro ao comparar as senhas." });
+      }
+      if (response) {
+        return res.json({ Status: 'Sucesso' });
+      } else {
+        return res.json({ Error: 'Senha incorreta.' });
+      }
+    });
+  });
+});
+
 
 app.listen(8081, () => {
   console.log('Servidor rodando na porta 8081...');
