@@ -33,6 +33,25 @@ app.post('/register', async (req, res) => {
   }
 });
 
+app.post('/login', (req, res) => {
+  const sql = 'SELECT * FROM users where email = ?';
+  db.query(sql, [req.body.email], (err, data) => {
+    if(err) return res.json({Error: "Login error in server"});
+    if(data.length > 0){
+      bcrypt.compare(req.body.password.toString(), data[0].password, (err, response) => {
+        if(err) return res.json({Error: "Password compare error"});
+        if(response){
+          res.json({ status: 'Sucesso' });
+        }else{
+          res.json({ Error: 'Password not matched' });
+        }
+      });
+    }else{
+      return res.json({Error: "No email existed "});
+    }
+  })
+})
+
 app.listen(8081, () => {
   console.log('Servidor rodando na porta 8081...');
 });
