@@ -10,7 +10,11 @@ const app = express();
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:3000'],
+  methods: ['POST', 'GET'], 
+  credentials: true
+}));
 app.use(cookieParser());
 
 const db = mysql.createConnection({
@@ -47,6 +51,9 @@ app.post('/login', (req, res) => {
         return res.json({ Error: "Erro ao comparar as senhas." });
       }
       if (response) {
+        const name = data[0].name;
+        const token = jwt.sign({name}, "jwt-secret-key", {expiresIn: '1d'});
+        res.cookie('token', token);
         return res.json({ Status: 'Sucesso' });
       } else {
         return res.json({ Error: 'Senha incorreta.' });
@@ -54,7 +61,6 @@ app.post('/login', (req, res) => {
     });
   });
 });
-
 
 app.listen(8081, () => {
   console.log('Servidor rodando na porta 8081...');
